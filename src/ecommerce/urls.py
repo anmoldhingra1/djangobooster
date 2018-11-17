@@ -15,6 +15,7 @@ urlpatterns = [
     url(r'^accounts/', include('registration.backends.default.urls')),
     url(r'^products/', include('products.urls')),
     url(r'^cart/', include('carts.urls')),
+    url(r'^booster/', include('booster.urls')),
 
 ]
 
