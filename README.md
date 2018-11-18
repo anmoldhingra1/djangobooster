@@ -14,4 +14,4 @@ Usage:
 This repo contains a website for demonstration purposes.
 
 # Training
-- Training can be envoked by putting a get request on /booster/train
+- Training can be envoked by with a get request on /booster/train
