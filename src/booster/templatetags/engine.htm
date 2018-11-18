@@ -20,7 +20,7 @@ var counter = 0
 var register_window = 1
 var scroll_data = []
 var init_scroll = null
-
+var element
 
 onmousemove = function(e){ 
 		counter+=1;
@@ -90,10 +90,9 @@ function predict_and_load(){
 		var result
 		prediction.then(function(value){
 			result = value
-			console.log(result)
-			if(result>0.5){
-				getResults(all_links[i])
-				all_links[i].style.backgroundColor
+			
+			if(result>0.9){
+				getResults(element)
 			}})
 	}
 
@@ -241,4 +240,5 @@ function getResults(element){
 	xhttp.open("GET", element.href, true);
 	xhttp.send(); 
 	loaded_elements.push(element)
+	element.style.backgroundColor = 'blue'
 }</script>

@@ -1,5 +1,6 @@
-{% load staticfiles %}
 {% load boost_links %}
+{% boost_all_links %}
+{% load staticfiles %}
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -26,7 +27,7 @@
 
   <body>
   <script>
-  {% boost_all_links %}</script>
+  </script>
   {% include 'navbar.html' %}
 
   {% if messages %}

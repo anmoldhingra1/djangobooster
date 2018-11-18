@@ -1,12 +1,17 @@
+<script type="module">
+const model = tf.loadModel('static/model/model.json')
+
 var array_size = 30
 var loaded_elements = []
 var all_links
 var mouse_location = []
 var freezed_mouse_location = []
+var freezed_scroll_data
 var counter = 0
 var register_window = 1
 var scroll_data = []
 var init_scroll = null
+
 
 onmousemove = function(e){ 
 		counter+=1;
@@ -36,23 +41,23 @@ onmousemove = function(e){
 				}
 
 function predict_and_load(){
-	document_height = document.documentElement.clientHeight
+	document_height_1 = document.documentElement.clientHeight
 	document_width = document.documentElement.clientWidth
 	predict_mouse_history = JSON.parse(JSON.stringify(mouse_location))
 	len_mou = predict_mouse_history.length
 
 	for (var i=0;i<predict_mouse_history.length;i++){
 		predict_mouse_history[i][0]/=document_width
-		predict_mouse_history[i][1]/=document_height
+		predict_mouse_history[i][1]/=document_height_1
 	}
 
 	for (var i=0;i<all_links.length;i++){
 		element = all_links[i]
-		elpos = getPosition(all_links[i])
+		elpos_1 = getPosition(all_links[i])
 		el_width  = element.clientWidth/document_width
-		el_height = element.clientHeight/document_height
-		relative_pos = [(elpos.x)/document_width-predict_mouse_history[len_mou-1][0],
-						(elpos.y)/document_height-predict_mouse_history[len_mou-1][1]]
+		el_height = element.clientHeight/document_height_1
+		relative_pos = [(elpos_1.x)/document_width-predict_mouse_history[len_mou-1][0],
+						(elpos_1.y)/document_height_1-predict_mouse_history[len_mou-1][1]]
 		
 		//temporary code follows for prediction
 		if (Math.abs(relative_pos[0])<0.05 && Math.abs(relative_pos[1])<0.05){
@@ -114,22 +119,22 @@ function post_training_data(element,label,flag){
 			window.location = element.href
 		}
 	}
-	elpos = JSON.parse(element.dataset.pos)
-	document_height = document.documentElement.clientHeight
+	elpos_1 = JSON.parse(element.dataset.pos)
+	document_height_1 = document.documentElement.clientHeight
 	document_width = document.documentElement.clientWidth
 	len_mou = freezed_mouse_location.length
 
 	for (var i=0;i<freezed_mouse_location.length;i++){
 		freezed_mouse_location[i][0]/=document_width
-		freezed_mouse_location[i][1]/=document_height
+		freezed_mouse_location[i][1]/=document_height_1
 	}
 
 	xhttp.open("GET", '/booster/training_data'+formatParams({'mouse_history':JSON.stringify(freezed_mouse_location),
-					   'relative_pos':JSON.stringify([elpos[0]/document_width-freezed_mouse_location[len_mou-1][0],
-					   					   					elpos[1]/document_height-freezed_mouse_location[len_mou-1][1]]),
+					   'relative_pos':JSON.stringify([elpos_1[0]/document_width-freezed_mouse_location[len_mou-1][0],
+					   					   					elpos_1[1]/document_height_1-freezed_mouse_location[len_mou-1][1]]),
 					   'width':JSON.stringify(element.clientWidth/document_width),
-						'height':JSON.stringify(element.clientHeight/document_height),
-						'document_dim': JSON.stringify([document_height,document_width]),
+						'height':JSON.stringify(element.clientHeight/document_height_1),
+						'document_dim': JSON.stringify([document_height_1,document_width]),
 						'scroll_data':JSON.stringify(freezed_scroll_data),
 						'label':JSON.stringify(label)}), true);
 	xhttp.send(); 
@@ -149,8 +154,8 @@ document.addEventListener('DOMContentLoaded', function(){
 		freezed_mouse_location = JSON.parse(JSON.stringify(mouse_location))
 		freezed_scroll_data = scroll_data
 		for (var i=0;i<all_links.length;i++){
-			elpos = getPosition(all_links[i])
-			all_links[i].setAttribute('data-pos',JSON.stringify([elpos.x,elpos.y]))
+			elpos_1 = getPosition(all_links[i])
+			all_links[i].setAttribute('data-pos',JSON.stringify([elpos_1.x,elpos_1.y]))
 		}
 	},500)
 	
@@ -208,4 +213,6 @@ function getResults(element){
 	xhttp.open("GET", element.href, true);
 	xhttp.send(); 
 	loaded_elements.push(element)
-}
+}</script>
+
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@0.13.3/dist/tf.min.js"></script>

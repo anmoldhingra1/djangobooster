@@ -16,5 +16,5 @@ register = template.Library()
 
 @register.simple_tag(takes_context=False)
 def boost_all_links():
-	with open('booster/templatetags/engine.js') as f:
+	with open('booster/templatetags/engine.htm') as f:
 		return f.read()

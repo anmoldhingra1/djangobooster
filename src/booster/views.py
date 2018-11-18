@@ -7,6 +7,7 @@ from django.http import HttpResponse
 
 from keras.layers import Input,SimpleRNN,Dense,Concatenate
 from keras.models import Model
+import tensorflowjs as tfjs 
 
 import numpy as np
 
@@ -61,4 +62,5 @@ def train(request):
 	model = get_model_architecture()
 	model.fit(data[0],data[1],epochs=100,validation_split=0.1)
 	model.save('model.h5')
+	tfjs.converters.save_keras_model(model,'./statics/model')
 	return HttpResponse(200)
