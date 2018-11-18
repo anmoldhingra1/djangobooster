@@ -59,6 +59,6 @@ def get_model_architecture():
 def train(request):
 	data = get_data()
 	model = get_model_architecture()
-	model.fit(data[0],data[1],epochs=100)
+	model.fit(data[0],data[1],epochs=100,validation_split=0.1)
 	model.save('model.h5')
 	return HttpResponse(200)
