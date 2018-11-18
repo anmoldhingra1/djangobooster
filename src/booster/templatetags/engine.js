@@ -1,4 +1,4 @@
-var array_size = 1000
+var array_size = 30
 var loaded_elements = []
 var all_links
 var mouse_location = []
@@ -15,14 +15,13 @@ onmousemove = function(e){
 		mouse_location.push([e.clientX, e.clientY]);
 		console.log(mouse_location.length)
 
-		if( scroll_data.length ==0){
-			if (init_scroll){
-				scroll_data.push([document.documentElement.scrollHeight-init_scroll[0],
-								document.documentElement.scrollWidth-init_scroll[1]])
-			}
-			else{
-				init_scroll = [document.documentElement.scrollHeight,document.documentElement.scrollWidth]}
+		if (init_scroll){
+			scroll_data.push([(document.documentElement.scrollTop-init_scroll[0])/document.documentElement.offsetHeight,
+							(document.documentElement.scrollLeft-init_scroll[1])/document.documentElement.scrollWidth])
 		}
+		init_scroll = [document.body.scrollTop,
+						document.body.scrollLeft]
+
 
 		if(mouse_location.length>array_size){
 			mouse_location.shift()
@@ -54,17 +53,12 @@ function predict_and_load(){
 		el_height = element.clientHeight/document_height
 		relative_pos = [(elpos.x)/document_width-predict_mouse_history[len_mou-1][0],
 						(elpos.y)/document_height-predict_mouse_history[len_mou-1][1]]
-		if(i==1){
-			console.log((predict_mouse_history[len_mou-1][0]-predict_mouse_history[len_mou-2][0])*Math.sign(relative_pos[0])>=0,
-				(predict_mouse_history[len_mou-1][1]-predict_mouse_history[len_mou-2][1])*Math.sign(relative_pos[1])>=0,
-				Math.abs(relative_pos[0]), Math.abs(relative_pos[1]))
-		}
+		
 		//temporary code follows for prediction
 		if (Math.abs(relative_pos[0])<0.05 && Math.abs(relative_pos[1])<0.05){
 			if ((predict_mouse_history[len_mou-1][0]-predict_mouse_history[len_mou-2][0])*Math.sign(relative_pos[0])>=0 &&
 				(predict_mouse_history[len_mou-1][1]-predict_mouse_history[len_mou-2][1])*Math.sign(relative_pos[1])>=0
 				){
-				console.log('predicting')
 				getResults(all_links[i])
 			}
 		}
@@ -112,7 +106,7 @@ function post_training_data(element){
 			window.location = element.href
 		}
 	}
-	elpos = getPosition(element)
+	elpos = JSON.parse(element.dataset.pos)
 	document_height = document.documentElement.clientHeight
 	document_width = document.documentElement.clientWidth
 	len_mou = freezed_mouse_location.length
@@ -121,32 +115,35 @@ function post_training_data(element){
 		freezed_mouse_location[i][0]/=document_width
 		freezed_mouse_location[i][1]/=document_height
 	}
-	console.log(formatParams({'mouse_history':JSON.stringify(freezed_mouse_location),
-					   'relative_pos':JSON.stringify([elpos.x/document_width-freezed_mouse_location[len_mou-1][0],
-					   					   					elpos.y/document_height-freezed_mouse_location[len_mou-1][1]]),
-					   'width':JSON.stringify(element.clientWidth/document_width),
-						'height':JSON.stringify(element.clientHeight/document_height),
-						'document_dim': JSON.stringify([document_height,document_width]),
-						'scroll_data':JSON.stringify(scroll_data)}))
 
 	xhttp.open("GET", '/booster/training_data'+formatParams({'mouse_history':JSON.stringify(freezed_mouse_location),
-					   'relative_pos':JSON.stringify([elpos.x/document_width-freezed_mouse_location[len_mou-1][0],
-					   					   					elpos.y/document_height-freezed_mouse_location[len_mou-1][1]]),
+					   'relative_pos':JSON.stringify([elpos[0]/document_width-freezed_mouse_location[len_mou-1][0],
+					   					   					elpos[1]/document_height-freezed_mouse_location[len_mou-1][1]]),
 					   'width':JSON.stringify(element.clientWidth/document_width),
 						'height':JSON.stringify(element.clientHeight/document_height),
 						'document_dim': JSON.stringify([document_height,document_width]),
-						'scroll_data':JSON.stringify(scroll_data)}), true);
+						'scroll_data':JSON.stringify(freezed_scroll_data)}), true);
 	xhttp.send(); 
 }
 
 document.addEventListener('DOMContentLoaded', function(){
 	all_links = document.getElementsByTagName('a')
+
+
+	setInterval(function(){
+		freezed_mouse_location = JSON.parse(JSON.stringify(mouse_location))
+		freezed_scroll_data = scroll_data
+		for (var i=0;i<all_links.length;i++){
+			elpos = getPosition(all_links[i])
+			all_links[i].setAttribute('data-pos',JSON.stringify([elpos.x,elpos.y]))
+		}
+	},500)
 	
 
 
 	for (var i=0;i<all_links.length;i++){
 	all_links[i].onclick = function(){
-		freezed_mouse_location = JSON.parse(JSON.stringify(mouse_location))
+
 		post_training_data(this)
 
 	for (i in loaded_elements){

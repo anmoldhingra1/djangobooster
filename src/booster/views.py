@@ -5,5 +5,7 @@ from django.views.generic.base import TemplateView
 
 # Create your views here.
 def server(request):
-	import pdb
-	pdb.set_trace()
+	import json
+	with open("train_data.txt","a") as f:
+		json.dump(request.GET,f)
+		f.write('\n')
