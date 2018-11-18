@@ -39,7 +39,7 @@ onmousemove = function(e){
 function predict_and_load(){
 	document_height = document.documentElement.clientHeight
 	document_width = document.documentElement.clientWidth
-	predict_mouse_history = mouse_location.map(a => Object.assign({}, a));
+	predict_mouse_history = JSON.parse(JSON.stringify(mouse_location))
 	len_mou = predict_mouse_history.length
 
 	for (var i=0;i<predict_mouse_history.length;i++){
@@ -101,23 +101,41 @@ function getPosition(el) {
 function post_training_data(element){
 	var xhttp = new XMLHttpRequest();
 
-	xhttp.onreadystatechange = function() {}
+	xhttp.onreadystatechange = function() {
+		if (element.dataset.html){
+			//console.log(this.dataset.html)
+			var newDoc = document.open("text/html", "replace");
+			newDoc.write(this.dataset.html);
+			newDoc.close();
+		}
+		else {
+			window.location = element.href
+		}
+	}
 	elpos = getPosition(element)
 	document_height = document.documentElement.clientHeight
 	document_width = document.documentElement.clientWidth
+	len_mou = freezed_mouse_location.length
 
 	for (var i=0;i<freezed_mouse_location.length;i++){
 		freezed_mouse_location[i][0]/=document_width
 		freezed_mouse_location[i][1]/=document_height
 	}
+	console.log(formatParams({'mouse_history':JSON.stringify(freezed_mouse_location),
+					   'relative_pos':JSON.stringify([elpos.x/document_width-freezed_mouse_location[len_mou-1][0],
+					   					   					elpos.y/document_height-freezed_mouse_location[len_mou-1][1]]),
+					   'width':JSON.stringify(element.clientWidth/document_width),
+						'height':JSON.stringify(element.clientHeight/document_height),
+						'document_dim': JSON.stringify([document_height,document_width]),
+						'scroll_data':JSON.stringify(scroll_data)}))
 
-	xhttp.open("GET", 'booster/training_data'+formatParams({'mouse_history':freezed_mouse_location.toString(),
-					   'relative_pos':[elpos.x/document_width-freezed_mouse_location[0],
-					   					elpos.y/document_height-freezed_mouse_location[1]].toString(),
-					   'width':(element.clientWidth/document_width).toString(),
-						'height':(element.clientHeight/document_height).toString(),
-						'document_dim': [document_height,document_width].toString(),
-						'scroll_data':scroll_data.toString()}), true);
+	xhttp.open("GET", '/booster/training_data'+formatParams({'mouse_history':JSON.stringify(freezed_mouse_location),
+					   'relative_pos':JSON.stringify([elpos.x/document_width-freezed_mouse_location[len_mou-1][0],
+					   					   					elpos.y/document_height-freezed_mouse_location[len_mou-1][1]]),
+					   'width':JSON.stringify(element.clientWidth/document_width),
+						'height':JSON.stringify(element.clientHeight/document_height),
+						'document_dim': JSON.stringify([document_height,document_width]),
+						'scroll_data':JSON.stringify(scroll_data)}), true);
 	xhttp.send(); 
 }
 
@@ -127,24 +145,18 @@ document.addEventListener('DOMContentLoaded', function(){
 
 
 	for (var i=0;i<all_links.length;i++){
-	all_links[i].addEventListener("onclick",function(){
-		freezed_mouse_location = mouse_location.map(a => Object.assign({}, a));
+	all_links[i].onclick = function(){
+		freezed_mouse_location = JSON.parse(JSON.stringify(mouse_location))
 		post_training_data(this)
-		if (this.dataset){
-			var newDoc = document.open("text/html", "replace");
-			newDoc.write(this.dataset);
-			newDoc.close();
-		}
-		else {
-			window.location = element.href
-		}
 
 	for (i in loaded_elements){
-		loaded_elements[i].dataset = ""
+		loaded_elements[i].dataset.html = ""
 	}
 	loaded_elements = []
 
-	})
+	return false
+
+	}
 }
 
 
@@ -173,7 +185,7 @@ function getResults(element){
 
 	console.log('yes');
 	console.log(this.responseText)
-	      element.dataset = this.responseText;
+	      element.setAttribute('data-html',this.responseText);
 	    }
 
 	console.log('3');

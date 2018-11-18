@@ -4,8 +4,6 @@ from django.views.generic.base import TemplateView
 
 
 # Create your views here.
-class Server(TemplateView):
-	template_name = "get_pages.html"
-	def get(self,request):
-		return
-
+def server(request):
+	import pdb
+	pdb.set_trace()

@@ -1,6 +1,7 @@
-from django.conf.urls import url
-from booster.views import Server
+from django.conf.urls import url,patterns
 
-urlpatterns = [
-    url(r'^get_pages/', Server.as_view(template_name="get_pages.html")),
-]
+from django.conf.urls import patterns, url
+
+urlpatterns = patterns('',
+    url(r'^training_data/', 'booster.views.server'),
+    )
