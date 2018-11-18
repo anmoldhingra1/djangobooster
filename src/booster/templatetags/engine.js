@@ -92,10 +92,18 @@ function getPosition(el) {
   };
 }
 
-function post_training_data(element){
+function post_training_data(element,label,flag){
 	var xhttp = new XMLHttpRequest();
 
 	xhttp.onreadystatechange = function() {
+		
+		if (!flag) {
+			ii = getRandomInt(0,all_links.length)
+			while(all_links[i]==element) {
+				ii = getRandomInt(0,all_links.length)
+			}
+			post_training_data(all_links[ii],0,true)
+			return}
 		if (element.dataset.html){
 			//console.log(this.dataset.html)
 			var newDoc = document.open("text/html", "replace");
@@ -122,8 +130,15 @@ function post_training_data(element){
 					   'width':JSON.stringify(element.clientWidth/document_width),
 						'height':JSON.stringify(element.clientHeight/document_height),
 						'document_dim': JSON.stringify([document_height,document_width]),
-						'scroll_data':JSON.stringify(freezed_scroll_data)}), true);
+						'scroll_data':JSON.stringify(freezed_scroll_data),
+						'label':JSON.stringify(label)}), true);
 	xhttp.send(); 
+}
+
+function getRandomInt(min, max) {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
 document.addEventListener('DOMContentLoaded', function(){
@@ -144,7 +159,8 @@ document.addEventListener('DOMContentLoaded', function(){
 	for (var i=0;i<all_links.length;i++){
 	all_links[i].onclick = function(){
 
-		post_training_data(this)
+		post_training_data(this,1,false)
+		
 
 	for (i in loaded_elements){
 		loaded_elements[i].dataset.html = ""
