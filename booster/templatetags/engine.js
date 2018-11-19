@@ -1,15 +1,6 @@
-<script src="static/js/tf.min.js"></script>
-<script>
-model = null
-const predict = async (data1,data2) => {
-if(!model) model = await tf.loadModel('static/model/model.json')
+<script type="module">
+const model = tf.loadModel('static/model/model.json')
 
-pred = model.predict([tf.tensor(data1),tf.tensor(data2)])
-const values = pred.dataSync();
-return values[0];
-}
-</script>
-<script>
 var array_size = 30
 var loaded_elements = []
 var all_links
@@ -20,13 +11,14 @@ var counter = 0
 var register_window = 1
 var scroll_data = []
 var init_scroll = null
-var element
+
 
 onmousemove = function(e){ 
 		counter+=1;
 		if (counter<register_window) return;
 		counter = 0;
 		mouse_location.push([e.clientX, e.clientY]);
+		console.log(mouse_location.length)
 
 		if (init_scroll){
 			scroll_data.push([(document.documentElement.scrollTop-init_scroll[0])/document.documentElement.offsetHeight,
@@ -48,22 +40,6 @@ onmousemove = function(e){
 
 				}
 
-function get_inputdata(predict_mouse_history,el_width,el_height,relative_pos){
-	data1 = []
-	maxlen = 8
-	if (predict_mouse_history.length<maxlen){
-		for(i=0;i<maxlen-predict_mouse_history.length;i++){
-			data1.push([0,0])
-		}
-	}
-	l1 = data1.length
-	for (i=0;i<maxlen-l1;i++){
-		data1.push(predict_mouse_history[i])
-	}
-
-	data2 = [el_height,el_width,relative_pos[0],relative_pos[1]]
-	return [[data1],[data2]]
-}
 function predict_and_load(){
 	document_height_1 = document.documentElement.clientHeight
 	document_width = document.documentElement.clientWidth
@@ -83,16 +59,15 @@ function predict_and_load(){
 		relative_pos = [(elpos_1.x)/document_width-predict_mouse_history[len_mou-1][0],
 						(elpos_1.y)/document_height_1-predict_mouse_history[len_mou-1][1]]
 		
+		//temporary code follows for prediction
+		if (Math.abs(relative_pos[0])<0.05 && Math.abs(relative_pos[1])<0.05){
+			if ((predict_mouse_history[len_mou-1][0]-predict_mouse_history[len_mou-2][0])*Math.sign(relative_pos[0])>=0 &&
+				(predict_mouse_history[len_mou-1][1]-predict_mouse_history[len_mou-2][1])*Math.sign(relative_pos[1])>=0
+				){
+				getResults(all_links[i])
+			}
+		}
 		
-		data = get_inputdata(predict_mouse_history,el_width,el_height,relative_pos)
-		prediction = predict(data[0],data[1])
-		var result
-		prediction.then(function(value){
-			result = value
-			console.log('click prediction: ',result)
-			if(result>0.9){
-				getResults(element)
-			}})
 	}
 
 }
@@ -194,7 +169,6 @@ document.addEventListener('DOMContentLoaded', function(){
 
 	for (i in loaded_elements){
 		loaded_elements[i].dataset.html = ""
-		all_links[i].style.backgroundColor = ""
 	}
 	loaded_elements = []
 
@@ -221,18 +195,24 @@ function formatParams( params ){
 
 function getResults(element){
 
+	console.log('2');
 	var xhttp = new XMLHttpRequest();
 
 	xhttp.onreadystatechange = function() {
 	    if (this.readyState == 4 && this.status == 200) {
 
+	console.log('yes');
+	console.log(this.responseText)
 	      element.setAttribute('data-html',this.responseText);
 	    }
 
+	console.log('3');
 	}
 
+	console.log('4');
 	xhttp.open("GET", element.href, true);
 	xhttp.send(); 
 	loaded_elements.push(element)
-	element.style.backgroundColor = 'blue'
 }</script>
+
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@0.13.3/dist/tf.min.js"></script>

@@ -60,7 +60,7 @@ def get_model_architecture():
 def train(request):
 	data = get_data()
 	model = get_model_architecture()
-	model.fit(data[0],data[1],epochs=300,validation_split=0.1)
+	model.fit(data[0],data[1],epochs=100,validation_split=0.1)
 	model.save('model.h5')
 	tfjs.converters.save_keras_model(model,'./statics/model')
 	return HttpResponse(200)
